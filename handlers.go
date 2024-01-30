@@ -12,6 +12,7 @@ import (
 
 	srvConfig "github.com/CHESSComputing/golib/config"
 	services "github.com/CHESSComputing/golib/services"
+	zenodo "github.com/CHESSComputing/golib/zenodo"
 	"github.com/gin-gonic/gin"
 )
 
@@ -110,7 +111,7 @@ func CreateHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	var response ZenodoResponse
+	var response zenodo.ZenodoResponse
 	err = json.Unmarshal(data, &response)
 	if Verbose > 0 {
 		log.Println("response data", string(data))
@@ -172,7 +173,7 @@ func AddHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	//     var response ZenodoAddResponse
+	//     var response zenodo.ZenodoAddResponse
 	//     err = json.Unmarshal(data, &response)
 	//     if Verbose > 0 {
 	//         log.Println("response data", string(data))
