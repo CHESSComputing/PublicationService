@@ -47,12 +47,6 @@ func DocsHandler(c *gin.Context) {
 		return
 	}
 	defer resp.Body.Close()
-	//     data, err := io.ReadAll(resp.Body)
-	//     if err != nil {
-	//         rec := services.Response("Publication", http.StatusBadRequest, services.ReaderError, err)
-	//         c.JSON(http.StatusBadRequest, rec)
-	//         return
-	//     }
 	dec := json.NewDecoder(resp.Body)
 	if doc.Id == 0 {
 		var results []map[string]any
@@ -62,6 +56,7 @@ func DocsHandler(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, results)
+		return
 	}
 	var results map[string]any
 	if err := dec.Decode(&results); err != nil {
