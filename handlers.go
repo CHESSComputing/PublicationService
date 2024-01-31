@@ -67,13 +67,13 @@ func DocsHandler(c *gin.Context) {
 		c.JSON(http.StatusOK, results)
 		return
 	}
-	var results map[string]any
-	if err := dec.Decode(&results); err != nil {
+	var record map[string]any
+	if err := dec.Decode(&record); err != nil {
 		rec := services.Response("Publication", http.StatusBadRequest, services.DecodeError, err)
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	c.JSON(http.StatusOK, results)
+	c.JSON(resp.StatusCode, record)
 }
 
 // CreateHandler services /create end-point
