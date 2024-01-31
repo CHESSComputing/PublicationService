@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -21,7 +20,7 @@ Implementation is based on few resources:
 - https://felipecrp.com/2021/01/01/uploading-to-zenodo-through-api.html
 - Zenodo REST API
   https://developers.zenodo.org/
-- snd, ome discussion about zenodo APIs can be found here:
+- snd, some discussion about zenodo APIs can be found here:
   https://github.com/zenodo/zenodo/issues/2168
 */
 
@@ -91,26 +90,15 @@ func CreateHandler(c *gin.Context) {
 	if Verbose > 0 {
 		log.Println("request", rurl)
 	}
-	var spec map[string]any
-	err := c.BindJSON(&spec)
-	if err != nil {
-		log.Println("ERROR:", err)
-		spec = make(map[string]any)
-	}
-	data, err := json.Marshal(spec)
-	if err != nil {
-		rec := services.Response("Publication", http.StatusBadRequest, services.MarshalError, err)
-		c.JSON(http.StatusBadRequest, rec)
-		return
-	}
-	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer([]byte("{}")))
 	if err != nil {
 		rec := services.Response("Publication", http.StatusBadRequest, services.HttpRequestError, err)
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
 	defer resp.Body.Close()
-	data, err = io.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
+	log.Println("POST", rurl, string(data), err)
 	if err != nil {
 		rec := services.Response("Publication", http.StatusBadRequest, services.ReaderError, err)
 		c.JSON(http.StatusBadRequest, rec)
@@ -118,8 +106,7 @@ func CreateHandler(c *gin.Context) {
 	}
 	var response zenodo.Response
 	err = json.Unmarshal(data, &response)
-	if Verbose > 0 {
-		log.Println("response data", string(data))
+	if Verbose > 1 {
 		log.Println("repsonse struct", response)
 	}
 	if response.Status > 0 && response.Status != 200 {
@@ -155,7 +142,7 @@ func AddHandler(c *gin.Context) {
 	if Verbose > 0 {
 		log.Println("request", rurl)
 	}
-	body, err := ioutil.ReadAll(c.Request.Body)
+	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		rec := services.Response("Publication", http.StatusBadRequest, services.ReaderError, err)
 		c.JSON(http.StatusBadRequest, rec)
@@ -173,23 +160,13 @@ func AddHandler(c *gin.Context) {
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
+	log.Println("PUT", rurl, string(data), err)
 	if err != nil {
 		rec := services.Response("Publication", http.StatusBadRequest, services.ReaderError, err)
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	//     var response zenodo.AddResponse
-	//     err = json.Unmarshal(data, &response)
-	//     if Verbose > 0 {
-	//         log.Println("response data", string(data))
-	//         log.Println("repsonse struct", response)
-	//     }
-	//     if response.Key == doc.FileName {
-	//         c.JSON(http.StatusOK, response)
-	//         return
-	//     }
 	c.JSON(resp.StatusCode, string(data))
-
 }
 
 // UpdateHandler services /add end-point
@@ -209,29 +186,24 @@ func UpdateHandler(c *gin.Context) {
 	   	    }
 	   	}
 	*/
-	// parse input JSON payload
-	var rec zenodo.MetaDataRecord
-	err := c.BindJSON(&rec)
-	if err != nil {
-		rec := services.Response("MLHub", http.StatusBadRequest, services.BindError, err)
-		c.JSON(http.StatusBadRequest, rec)
-		return
-	}
-	data, err := json.Marshal(rec)
-	if err != nil {
-		rec := services.Response("MLHub", http.StatusBadRequest, services.MarshalError, err)
-		c.JSON(http.StatusBadRequest, rec)
-		return
-	}
 	var doc DocParams
 	if err := c.ShouldBindUri(&doc); err != nil {
-		rec := services.Response("MLHub", http.StatusBadRequest, services.BindError, err)
+		rec := services.Response("Publication", http.StatusBadRequest, services.BindError, err)
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
 	zurl := srvConfig.Config.Publication.Zenodo.URL
 	token := srvConfig.Config.Publication.Zenodo.AccessToken
-	rurl := fmt.Sprintf("%s/deposit/depositions/%s?access_token=%s", zurl, doc.Id, token)
+	rurl := fmt.Sprintf("%s/deposit/depositions/%d?access_token=%s", zurl, doc.Id, token)
+
+	// read payload
+	defer c.Request.Body.Close()
+	data, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		rec := services.Response("Publication", http.StatusBadRequest, services.HttpRequestError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
 
 	// place HTTP request to zenodo upstream server
 	req, err := http.NewRequest("PUT", rurl, bytes.NewReader(data))
@@ -244,6 +216,7 @@ func UpdateHandler(c *gin.Context) {
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
 	data, err = io.ReadAll(resp.Body)
+	log.Println("PUT", rurl, string(data), err)
 	if err != nil {
 		rec := services.Response("Publication", http.StatusBadRequest, services.ReaderError, err)
 		c.JSON(http.StatusBadRequest, rec)
@@ -257,13 +230,13 @@ func PublishHandler(c *gin.Context) {
 	// curl -v -X POST "https://zenodo.org/api/deposit/depositions/<ID>/actions/publish?access_token=<TOKEN>"
 	var doc DocParams
 	if err := c.ShouldBindUri(&doc); err != nil {
-		rec := services.Response("MLHub", http.StatusBadRequest, services.BindError, err)
+		rec := services.Response("Publication", http.StatusBadRequest, services.BindError, err)
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
 	zurl := srvConfig.Config.Publication.Zenodo.URL
 	token := srvConfig.Config.Publication.Zenodo.AccessToken
-	rurl := fmt.Sprintf("%s/deposit/depositions/%s/actions/publish?access_token=%s", zurl, doc.Id, token)
+	rurl := fmt.Sprintf("%s/deposit/depositions/%d/actions/publish?access_token=%s", zurl, doc.Id, token)
 
 	// place HTTP request to zenodo upstream server
 	req, err := http.NewRequest("POST", rurl, nil)
@@ -276,6 +249,7 @@ func PublishHandler(c *gin.Context) {
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
+	log.Println("POST", rurl, string(data), err)
 	if err != nil {
 		rec := services.Response("Publication", http.StatusBadRequest, services.ReaderError, err)
 		c.JSON(http.StatusBadRequest, rec)
