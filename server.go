@@ -20,9 +20,9 @@ func setupRouter() *gin.Engine {
 		server.Route{Method: "GET", Path: "/docs", Handler: DocsHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/docs/:id", Handler: DocsHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/create", Handler: CreateHandler, Authorized: true, Scope: "write"},
-		//         server.Route{Method: "PUT", Path: "/add/:bucket/:file", Handler: AddHandler, Authorized: true, Scope: "write"},
-		server.Route{Method: "PUT", Path: "/add/:bucket/:file", Handler: AddHandler},
-		server.Route{Method: "POST", Path: "/publish", Handler: PublishHandler, Authorized: true, Scope: "write"},
+		server.Route{Method: "PUT", Path: "/add/:bucket/:file", Handler: AddHandler, Authorized: true, Scope: "write"},
+		server.Route{Method: "PUT", Path: "/update/:id", Handler: UpdateHandler, Authorized: true, Scope: "write"},
+		server.Route{Method: "POST", Path: "/publish/:id", Handler: PublishHandler, Authorized: true, Scope: "write"},
 	}
 	r := server.Router(routes, nil, "static", srvConfig.Config.Publication.WebServer)
 	return r

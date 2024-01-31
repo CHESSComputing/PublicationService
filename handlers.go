@@ -16,6 +16,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/*
+Implementation is based on few resources:
+- https://felipecrp.com/2021/01/01/uploading-to-zenodo-through-api.html
+- Zenodo REST API
+  https://developers.zenodo.org/
+- snd, ome discussion about zenodo APIs can be found here:
+  https://github.com/zenodo/zenodo/issues/2168
+*/
+
+// DocParams defines binding URI parameters
 type DocParams struct {
 	Id       int64  `uri:"id"`
 	Bucket   string `uri:"bucket"`
@@ -106,7 +116,7 @@ func CreateHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	var response zenodo.ZenodoResponse
+	var response zenodo.Response
 	err = json.Unmarshal(data, &response)
 	if Verbose > 0 {
 		log.Println("response data", string(data))
@@ -168,7 +178,7 @@ func AddHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	//     var response zenodo.ZenodoAddResponse
+	//     var response zenodo.AddResponse
 	//     err = json.Unmarshal(data, &response)
 	//     if Verbose > 0 {
 	//         log.Println("response data", string(data))
@@ -182,6 +192,94 @@ func AddHandler(c *gin.Context) {
 
 }
 
+// UpdateHandler services /add end-point
+func UpdateHandler(c *gin.Context) {
+	/*
+	   # add mandatory metadata to our publication
+	   curl -v -X PUT "https://zenodo.org/api/deposit/depositions/<ID>?access_token=<TOKEN>" \
+	           -H "Content-type: application/json" -d@meta1.json
+
+	   	{
+	   	    "metadata": {
+	   	        "publication_type": "article",
+	   	        "upload_type":"publication",
+	   	        "description":"This is a test",
+	   	        "keywords": ["bla", "foo"],
+	   	        "title":"Test"
+	   	    }
+	   	}
+	*/
+	// parse input JSON payload
+	var rec zenodo.MetaDataRecord
+	err := c.BindJSON(&rec)
+	if err != nil {
+		rec := services.Response("MLHub", http.StatusBadRequest, services.BindError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
+	data, err := json.Marshal(rec)
+	if err != nil {
+		rec := services.Response("MLHub", http.StatusBadRequest, services.MarshalError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
+	var doc DocParams
+	if err := c.ShouldBindUri(&doc); err != nil {
+		rec := services.Response("MLHub", http.StatusBadRequest, services.BindError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
+	zurl := srvConfig.Config.Publication.Zenodo.URL
+	token := srvConfig.Config.Publication.Zenodo.AccessToken
+	rurl := fmt.Sprintf("%s/deposit/depositions/%s?access_token=%s", zurl, doc.Id, token)
+
+	// place HTTP request to zenodo upstream server
+	req, err := http.NewRequest("PUT", rurl, bytes.NewReader(data))
+	if err != nil {
+		rec := services.Response("Publication", http.StatusBadRequest, services.HttpRequestError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
+	client := http.Client{}
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		rec := services.Response("Publication", http.StatusBadRequest, services.ReaderError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
+	c.JSON(resp.StatusCode, string(data))
+}
+
 // PublishHandler services /add end-point
 func PublishHandler(c *gin.Context) {
+	// curl -v -X POST "https://zenodo.org/api/deposit/depositions/<ID>/actions/publish?access_token=<TOKEN>"
+	var doc DocParams
+	if err := c.ShouldBindUri(&doc); err != nil {
+		rec := services.Response("MLHub", http.StatusBadRequest, services.BindError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
+	zurl := srvConfig.Config.Publication.Zenodo.URL
+	token := srvConfig.Config.Publication.Zenodo.AccessToken
+	rurl := fmt.Sprintf("%s/deposit/depositions/%s/actions/publish?access_token=%s", zurl, doc.Id, token)
+
+	// place HTTP request to zenodo upstream server
+	req, err := http.NewRequest("POST", rurl, nil)
+	if err != nil {
+		rec := services.Response("Publication", http.StatusBadRequest, services.HttpRequestError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
+	client := http.Client{}
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		rec := services.Response("Publication", http.StatusBadRequest, services.ReaderError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
+	c.JSON(resp.StatusCode, string(data))
 }
