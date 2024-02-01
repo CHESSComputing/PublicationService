@@ -1,4 +1,9 @@
 # PublicationService
+
+![build status](https://github.com/CHESSComputing/PublicationService/actions/workflows/go.yml/badge.svg)
+[![go report card](https://goreportcard.com/badge/github.com/CHESSComputing/PublicationService)](https://goreportcard.com/report/github.com/CHESSComputing/PublicationService)
+[![godoc](https://godoc.org/github.com/CHESSComputing/PublicationService?status.svg)](https://godoc.org/github.com/CHESSComputing/PublicationService)
+
 CHESS Publication service. Its implementation is based on
 [Zenodo](https://zenodo.org) APIs, see his [blog](https://felipecrp.com/2021/01/01/uploading-to-zenodo-through-api.html)
 
