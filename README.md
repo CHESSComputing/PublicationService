@@ -7,6 +7,13 @@
 CHESS Publication service. Its implementation is based on
 [Zenodo](https://zenodo.org) APIs, see his [blog](https://felipecrp.com/2021/01/01/uploading-to-zenodo-through-api.html)
 
+TODO: we should aim to convert this service to fully complaint
+[FAIR digitial object registry](https://fairdigitalobjectframework.org/)., part
+of [FAIR digital object
+framework](https://www.go-fair.org/today/fair-digital-framework/). More
+information can be captured from [How to go
+FAIR](https://www.go-fair.org/how-to-go-fair/) document.
+
 ### APIs
 ```
 # to work with all APIs please obtain valid token
