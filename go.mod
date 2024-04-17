@@ -1,9 +1,9 @@
 module github.com/CHESSComputing/PublicationService
 
-go 1.22.1
+go 1.22.2
 
 require (
-	github.com/CHESSComputing/golib v0.1.9
+	github.com/CHESSComputing/golib v0.2.0
 	github.com/gin-gonic/gin v1.9.1
 )
 
