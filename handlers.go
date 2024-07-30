@@ -34,8 +34,8 @@ type DocParams struct {
 // DocsHandler services / end-point
 func DocsHandler(c *gin.Context) {
 	/*
-	 curl --request POST 'https://zenodo.org/api/deposit/depositions?access_token=<KEY>'
-	 curl --request POST 'https://zenodo.org/api/deposit/depositions/<123>?access_token=<KEY>'
+	 curl 'https://zenodo.org/api/deposit/depositions?access_token=<KEY>'
+	 curl 'https://zenodo.org/api/deposit/depositions/<123>?access_token=<KEY>'
 	*/
 	zurl := srvConfig.Config.Publication.Zenodo.URL
 	token := srvConfig.Config.Publication.Zenodo.AccessToken
