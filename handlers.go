@@ -37,8 +37,8 @@ func DocsHandler(c *gin.Context) {
 	 curl 'https://zenodo.org/api/deposit/depositions?access_token=<KEY>'
 	 curl 'https://zenodo.org/api/deposit/depositions/<123>?access_token=<KEY>'
 	*/
-	zurl := srvConfig.Config.Publication.Zenodo.URL
-	token := srvConfig.Config.Publication.Zenodo.AccessToken
+	zurl := srvConfig.Config.DOI.URL
+	token := srvConfig.Config.DOI.AccessToken
 	rurl := fmt.Sprintf("%s/deposit/depositions?access_token=%s", zurl, token)
 	var doc DocParams
 	if err := c.ShouldBindUri(&doc); err == nil {
@@ -84,8 +84,8 @@ func CreateHandler(c *gin.Context) {
 	 --data-raw '{}'
 	*/
 	// create new deposit
-	zurl := srvConfig.Config.Publication.Zenodo.URL
-	token := srvConfig.Config.Publication.Zenodo.AccessToken
+	zurl := srvConfig.Config.DOI.URL
+	token := srvConfig.Config.DOI.AccessToken
 	rurl := fmt.Sprintf("%s/deposit/depositions?access_token=%s", zurl, token)
 	if Verbose > 0 {
 		log.Println("request", rurl)
@@ -136,8 +136,8 @@ func AddHandler(c *gin.Context) {
 	}
 
 	// create new deposit
-	zurl := srvConfig.Config.Publication.Zenodo.URL
-	token := srvConfig.Config.Publication.Zenodo.AccessToken
+	zurl := srvConfig.Config.DOI.URL
+	token := srvConfig.Config.DOI.AccessToken
 	rurl := fmt.Sprintf("%s/files/%s/%s?access_token=%s", zurl, doc.Bucket, doc.FileName, token)
 	if Verbose > 0 {
 		log.Println("request", rurl)
@@ -192,8 +192,8 @@ func UpdateHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	zurl := srvConfig.Config.Publication.Zenodo.URL
-	token := srvConfig.Config.Publication.Zenodo.AccessToken
+	zurl := srvConfig.Config.DOI.URL
+	token := srvConfig.Config.DOI.AccessToken
 	rurl := fmt.Sprintf("%s/deposit/depositions/%d?access_token=%s", zurl, doc.Id, token)
 
 	// read payload
@@ -234,8 +234,8 @@ func PublishHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	zurl := srvConfig.Config.Publication.Zenodo.URL
-	token := srvConfig.Config.Publication.Zenodo.AccessToken
+	zurl := srvConfig.Config.DOI.URL
+	token := srvConfig.Config.DOI.AccessToken
 	rurl := fmt.Sprintf("%s/deposit/depositions/%d/actions/publish?access_token=%s", zurl, doc.Id, token)
 
 	// place HTTP request to zenodo upstream server
