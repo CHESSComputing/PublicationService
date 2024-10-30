@@ -3,7 +3,7 @@ module github.com/CHESSComputing/PublicationService
 go 1.23.2
 
 require (
-	github.com/CHESSComputing/golib v0.4.3
+	github.com/CHESSComputing/golib v0.4.4
 	github.com/gin-gonic/gin v1.10.0
 )
 
