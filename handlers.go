@@ -37,7 +37,7 @@ func DocsHandler(c *gin.Context) {
 	 curl 'https://zenodo.org/api/deposit/depositions?access_token=<KEY>'
 	 curl 'https://zenodo.org/api/deposit/depositions/<123>?access_token=<KEY>'
 	*/
-	zurl := srvConfig.Config.Zenodo.URL
+	zurl := srvConfig.Config.Zenodo.Url
 	token := srvConfig.Config.Zenodo.AccessToken
 	rurl := fmt.Sprintf("%s/deposit/depositions?access_token=%s", zurl, token)
 	var doc DocParams
@@ -84,7 +84,7 @@ func CreateHandler(c *gin.Context) {
 	 --data-raw '{}'
 	*/
 	// create new deposit
-	zurl := srvConfig.Config.Zenodo.URL
+	zurl := srvConfig.Config.Zenodo.Url
 	token := srvConfig.Config.Zenodo.AccessToken
 	rurl := fmt.Sprintf("%s/deposit/depositions?access_token=%s", zurl, token)
 	if Verbose > 0 {
@@ -136,7 +136,7 @@ func AddHandler(c *gin.Context) {
 	}
 
 	// create new deposit
-	zurl := srvConfig.Config.Zenodo.URL
+	zurl := srvConfig.Config.Zenodo.Url
 	token := srvConfig.Config.Zenodo.AccessToken
 	rurl := fmt.Sprintf("%s/files/%s/%s?access_token=%s", zurl, doc.Bucket, doc.FileName, token)
 	if Verbose > 0 {
@@ -192,7 +192,7 @@ func UpdateHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	zurl := srvConfig.Config.Zenodo.URL
+	zurl := srvConfig.Config.Zenodo.Url
 	token := srvConfig.Config.Zenodo.AccessToken
 	rurl := fmt.Sprintf("%s/deposit/depositions/%d?access_token=%s", zurl, doc.Id, token)
 
@@ -234,7 +234,7 @@ func PublishHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	zurl := srvConfig.Config.Zenodo.URL
+	zurl := srvConfig.Config.Zenodo.Url
 	token := srvConfig.Config.Zenodo.AccessToken
 	rurl := fmt.Sprintf("%s/deposit/depositions/%d/actions/publish?access_token=%s", zurl, doc.Id, token)
 
